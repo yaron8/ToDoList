@@ -1,0 +1,15 @@
+package com.yaron.Geofence;
+
+import android.content.Intent;
+
+public class GeofenceReminder extends GeofenceManager {
+	
+	public GeofenceReminder(ActivityClassGeofence acg) {
+		super(acg);
+	}
+	
+	public void addGeofence(String id, double longitude, double latitude, double radius, Intent intent, ActivityClassGeofence context) {
+		super.addGeofence("georemider_"+id, longitude, latitude, radius, intent);
+	}
+	
+}

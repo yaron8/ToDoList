@@ -1,0 +1,36 @@
+package com.yaron.Geofence;
+
+import com.google.android.gms.common.ConnectionResult;
+
+import android.content.Intent;
+import android.os.Bundle;
+
+public class GeofenceReminder extends GeofenceManager {
+	
+	public GeofenceReminder(ActivityClassGeofence acg) {
+		super(acg);
+	}
+	
+	public void addGeofence(String id, double longitude, double latitude, double radius, Intent intent, ActivityClassGeofence context) {
+		super.addGeofence("georemider_"+id, longitude, latitude, radius, intent);
+	}
+
+	@Override
+	public void onConnected(Bundle arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onDisconnected() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onConnectionFailed(ConnectionResult arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+}

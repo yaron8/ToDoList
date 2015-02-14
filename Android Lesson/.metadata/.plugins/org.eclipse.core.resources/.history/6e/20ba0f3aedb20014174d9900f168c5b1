@@ -1,0 +1,49 @@
+package com.yaron.Geofence;
+
+import java.util.ArrayList;
+
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.location.LocationClient.OnAddGeofencesResultListener;
+
+import android.app.PendingIntent;
+import android.content.Intent;
+import android.widget.Toast;
+
+public abstract class GeofenceManager {
+	private LocationClient geoLocationClient;
+	private final ActivityClassGeofence acg;
+	
+	public GeofenceManager(final ActivityClassGeofence acg) {
+		this.acg=acg;
+	}
+	
+	public void addGeofence(String id, double longitude, double latitude, double radius, Intent intent) {
+		
+        geoLocationClient = new LocationClient(acg, acg, acg);
+        geoLocationClient.connect();
+        
+		ArrayList<Geofence> geofenceList = new ArrayList<Geofence>();
+		
+		Geofence geofence = new Geofence.Builder()
+        .setRequestId("new reminder")
+        .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT)
+        .setCircularRegion(latitude, longitude, (float) radius)
+        .setExpirationDuration(Geofence.NEVER_EXPIRE)
+        .build();
+		geofenceList.add(geofence);
+		
+		PendingIntent pi = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+		
+		//geoLocationClient.removeGeofences(geofenceRequestIds, listener)
+		geoLocationClient.addGeofences(geofenceList, pi, new OnAddGeofencesResultListener() {
+
+			@Override
+			public void onAddGeofencesResult(int arg0, String[] arg1) {
+				Toast.makeText(context, "geofence added!", Toast.LENGTH_SHORT).show();
+			}
+			
+		});
+			
+	}
+}

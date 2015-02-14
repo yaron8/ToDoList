@@ -1,0 +1,32 @@
+package com.yaron.Geofence;
+
+import java.util.ArrayList;
+
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.LocationClient;
+
+import android.content.Intent;
+
+public abstract class GeofenceManager {
+	private LocationClient geoLocationClient;
+	
+	public GeofenceManager() {
+		
+	}
+	
+	public void addGeofence(String id, double longitude, double latitude, double radius, Intent intent, ActivityClassGeofence context) {
+		
+        geoLocationClient = new LocationClient(context, context, context);
+        geoLocationClient.connect();
+        
+		ArrayList<Geofence> geofenceList = new ArrayList<Geofence>();
+		
+		Geofence geofence = new Geofence.Builder()
+        .setRequestId("new reminder")
+        .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT)
+        .setCircularRegion(latitude, longitude, (float) radius)
+        .setExpirationDuration(Geofence.NEVER_EXPIRE)
+        .build();
+		geofenceList.add(geofence);
+	}
+}

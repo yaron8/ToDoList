@@ -1,0 +1,5 @@
+package com.yaron.Geofence;
+
+public abstract class ActivityClassGeofence {
+
+}

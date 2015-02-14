@@ -1,0 +1,268 @@
+package com.example.geofencingtest;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
+
+import com.google.android.gms.common.GooglePlayServicesClient;
+import com.google.android.gms.location.LocationClient;
+
+import android.location.Address;
+import android.location.Geocoder;
+import android.os.Bundle;
+import android.app.Activity;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+ 
+public class MyActivity extends Activity implements GooglePlayServicesClient.ConnectionCallbacks
+{
+	private LocationClient mLocationClient;
+    private Button btn_apply;
+    private TextView my_address;
+     
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_my);
+
+        my_address = (TextView)findViewById(R.id.address);
+        btn_apply = (Button) findViewById(R.id.button1);
+        
+        btn_apply.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+
+				my_address.setText("");
+				Geocoder geocoder = new Geocoder(getBaseContext());
+				try {
+					List<Address> address_list = geocoder.getFromLocationName("Tel Aviv", 1);
+					Address address = address_list.get(0);
+					my_address.setText(String.valueOf(address.getLatitude()));
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				Toast.makeText(getApplicationContext(), "Finish", Toast.LENGTH_SHORT).show();
+				
+			}
+		});
+    }
+ 
+     
+    
+    @Override
+    020
+        protected void onCreate(Bundle savedInstanceState) {
+    021
+            super.onCreate(savedInstanceState);
+    022
+            setContentView(R.layout.geolocation_view);
+    023
+     
+    024
+            mLocationClient = new LocationClient(this, this, this);
+    025
+     
+    026
+            // Create a new broadcast receiver to receive updates from the listeners and service
+    027
+            mGeofenceBroadcastReceiver = new ResturantGeofenceReceiver();
+    028
+     
+    029
+            // Create an intent filter for the broadcast receiver
+    030
+            mIntentFilter = new IntentFilter();
+    031
+     
+    032
+            // Action for broadcast Intents that report successful addition of geofences
+    033
+            mIntentFilter.addAction(ACTION_GEOFENCES_ADDED);
+    034
+     
+    035
+            // Action for broadcast Intents that report successful removal of geofences
+    036
+            mIntentFilter.addAction(ACTION_GEOFENCES_REMOVED);
+    037
+     
+    038
+            // Action for broadcast Intents containing various types of geofencing errors
+    039
+            mIntentFilter.addAction(ACTION_GEOFENCE_ERROR);
+    040
+     
+    041
+            // All Location Services sample apps use this category
+    042
+            mIntentFilter.addCategory(CATEGORY_LOCATION_SERVICES);
+    043
+     
+    044
+            createGeofences();
+    045
+     
+    046
+            mRegisterGeofenceButton = (Button)findViewById(R.id.geofence_switch);
+    047
+            mGeofenceState = CAN_START_GEOFENCE;
+    048
+         
+    049
+        }
+    050
+         
+    051
+        @Override
+    052
+        protected void onResume() {
+    053
+            super.onResume();
+    054
+            // Register the broadcast receiver to receive status updates
+    055
+            LocalBroadcastManager.getInstance(this).registerReceiver(
+    056
+                mGeofenceBroadcastReceiver, mIntentFilter);
+    057
+        }
+    058
+             
+    059
+        /**
+    060
+         * Create a Geofence list
+    061
+         */
+    062
+        public void createGeofences() {
+    063
+            for(int ix=0; ix > ALLRESTURANTLOCATIONS.length; ix++) {
+    064
+                Geofence fence = new Geofence.Builder()
+    065
+                    .setRequestId(ALLRESTURANTLOCATIONS[ix].mId)
+    066
+                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
+    067
+                    .setCircularRegion(
+    068
+                        ALLRESTURANTLOCATIONS[ix].mLatLng.latitude, ALLRESTURANTLOCATIONS[ix].mLatLng.longitude, GEOFENCERADIUS)
+    069
+                    .setExpirationDuration(Geofence.NEVER_EXPIRE)
+    070
+                    .build();
+    071
+                mGeofenceList.add(fence);
+    072
+            }
+    073
+        }
+    074
+     
+    075
+        // callback function when the mRegisterGeofenceButton is clicked
+    076
+        public void onRegisterGeofenceButtonClick(View view) {
+    077
+            if (mGeofenceState == CAN_REGISTER_GEOFENCE) {
+    078
+                registerGeofences();
+    079
+                mGeofenceState = GEOFENCE_REGISTERED;
+    080
+                mGeofenceButton.setText(R.string.unregister_geofence);
+    081
+                mGeofenceButton.setClickable(true);            
+    082
+            else {
+    083
+                unregisterGeofences();
+    084
+                mGeofenceButton.setText(R.string.register_geofence);
+    085
+                mGeofenceButton.setClickable(true);
+    086
+                mGeofenceState = CAN_REGISTER_GEOFENCE;
+    087
+            }
+    088
+        }
+    089
+     
+    090
+        private boolean checkGooglePlayServices() {
+    091
+            int result = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+    092
+            if (result == ConnectionResult.SUCCESS) {
+                return true;
+            } 
+            else {
+                Dialog errDialog = GooglePlayServicesUtil.getErrorDialog(result,this, CONNECTION_FAILURE_RESOLUTION_REQUEST);
+                if (errorDialog != null) {
+                    errorDialog.show();
+                }
+            }
+            return false;
+       }
+        public void registerGeofences() {
+            if (!checkGooglePlayServices()) {
+                return;
+            }
+            mRequestType = REQUEST_TYPE.ADD;
+            try {
+                requestConnectToLocationClient();
+            } catch (UnsupportedOperationException e) {
+            }
+        }
+        public void unregisterGeofences() {
+            if (!checkGooglePlayServices()) {
+                return;
+            }
+              mRequestType = REQUEST_TYPE.REMOVE;
+            try {
+                mCurrentIntent = getRequestPendingIntent());
+                requestConnectToLocationClient();
+            } catch (UnsupportedOperationException e) {
+            }
+        }
+        public void requestConnectToLocationServices () throws UnsupportedOperationException {
+            if (!mRequestInProgress) {
+                mRequestInProgress = true;
+                locationClient().connect();
+            } 
+            else {
+                throw new UnsupportedOperationException();
+            }
+        }
+        private void requestDisconnectToLocationServices() {
+            mRequestInProgress = false;
+            locationClient().disconnect();
+            if (mRequestType == REQUEST_TYPE.REMOVE) {
+                mCurrentIntent.cancel();
+            }
+        }
+        private GooglePlayServicesClient locationClient() {
+            if (mLocationClient == null) {
+                mLocationClient = new LocationClient(this, this, this);
+            }
+            return mLocationClient;
+    }
+        @Override
+        public void onConnected(Bundle bundle) {
+            if (mRequestType == REQUEST_TYPE.ADD) {
+	            mGeofencePendingIntent = createRequestPendingIntent();
+	            mLocationClient.addGeofences(mGeofenceList, mGeofencePendingIntent, this);
+            } 
+            else if (mRequestType == REQUEST_TYPE.REMOVE){
+                mLocationClient.removeGeofences(mCurrentIntent, this);     
+            } 
+    }
+
+    
+}
